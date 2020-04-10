@@ -15,14 +15,17 @@ export const Query = {
         return null;
       }
       const token = authorizationHeader.split(" ")[1];
-      const signedIn = jwt.verify(token, "soso-the-barber-jwt-secret");
+      let signedIn;
+      try {
+        signedIn = jwt.verify(token, "soso-the-barber-jwt-secret");
+      } catch (error) {
+        throw new Error('Your session has expired, please sign in again.')
+      }
       
       const { id } = (signedIn as any);
       const currentUser = await ctx.prisma.user({
         id
       });
-      // const onlyActiveBookings = (currentUser as any).bookings.filter((booking: any) => booking.status == "ACTIVE");
-      // return {...(currentUser as any), bookings: onlyActiveBookings };
       return currentUser;
     } catch (error) {
       return null;
@@ -36,7 +39,12 @@ export const Query = {
         return null;
       }
       const token = authorizationHeader.split(" ")[1];
-      const signedIn = jwt.verify(token, "soso-the-barber-jwt-secret");
+      let signedIn;
+      try {
+        signedIn = jwt.verify(token, "soso-the-barber-jwt-secret");
+      } catch (error) {
+        throw new Error('Your session has expired, please sign in again.')
+      }
       
       const { id } = (signedIn as any);
       const currentUser = await ctx.prisma.user({
@@ -104,6 +112,18 @@ export const Query = {
 
   bookingsWithUser: async (_: any, __: any, ctx: IContext) => {
     try {
+      const authorizationHeader = ctx.request.headers['x-access-token'] || ctx.request.headers['authorization'];
+      if (!authorizationHeader) {
+        return null;
+      }
+      const token = authorizationHeader.split(" ")[1];
+      let signedIn;
+      try {
+        signedIn = jwt.verify(token, "soso-the-barber-jwt-secret");
+      } catch (error) {
+        throw new Error('Your session has expired, please sign in again.')
+      }
+      
       return ctx.prisma.bookings().$fragment(`{
         id
         status

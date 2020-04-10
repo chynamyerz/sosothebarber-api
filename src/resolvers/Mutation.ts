@@ -6,7 +6,7 @@ import {
   UserCreateInput,
   UserUpdateInput,
 } from "../generated/prisma-client";
-import { transport } from "../util";
+import { transport, mailContent } from "../util";
 interface IContext {
   prisma: Prisma;
   request: any;
@@ -72,6 +72,10 @@ export const Mutation = {
         token,
         user: {
           id: user.id,
+          displayName: user.displayName,
+          email: user.email,
+          phoneNumber: user.phoneNumber,
+          role: user.role
         }
       }
     } catch (error) {
@@ -151,15 +155,13 @@ export const Mutation = {
       data: { oneTimePin, resetTokenExpiry }
     });
     try {
-      const html = `
-            Dear Valuable Client,<br><br>
-            Someone (probably you) has requested to reset your password for the Soso-The-Barber app.<br><br>
-            Please use the OTP below to change the password:<br><br>
-            OTP: ${oneTimePin}<br><br>
-            If you have not requested to reset your password there is no need for any action from your side.<br><br>
-            Kind Regards,<br><br>
-            Soso-The-Barber
-       `;
+      const message = `
+        Someone (probably you) has requested to reset your password for the Soso-The-Barber app.<br><br>
+        Please use the OTP below to change the password:<br><br>
+        OTP: ${oneTimePin}<br><br>
+        If you have not requested to reset your password there is no need for any action from your side.
+      `
+      const html = mailContent(user.displayName, message);
       const email = {
         from: "sosothebarber@gmail.com",
         to: user.email,
@@ -221,13 +223,13 @@ export const Mutation = {
         throw new Error("You must be logged in to update user information.");
       }
       const token = authorizationHeader.split(" ")[1];
-      const signedIn = jwt.verify(token, "soso-the-barber-jwt-secret");
-      const { id } = (signedIn as any);
-      // Logged in user information
-      const user = await ctx.prisma.user({ id });
-      if (!user) {
-        throw new Error("Please make sure you are logged in");
+      let signedIn;
+      try {
+        signedIn = jwt.verify(token, "soso-the-barber-jwt-secret");
+      } catch (error) {
+        throw new Error('Your session has expired, please sign in again.')
       }
+      const { id } = (signedIn as any);
       
 			const date = moment(dayTime).format("YYYY-MM-DD")
 			
@@ -275,32 +277,33 @@ export const Mutation = {
         throw new Error("You must be logged in to update user information.");
       }
       const token = authorizationHeader.split(" ")[1];
-      const signedIn = jwt.verify(token, "soso-the-barber-jwt-secret");
+      let signedIn;
+      try {
+        signedIn = jwt.verify(token, "soso-the-barber-jwt-secret");
+      } catch (error) {
+        throw new Error('Your session has expired, please sign in again.')
+      }
       const { id } = (signedIn as any);
       // Logged in user information
       const user = await ctx.prisma.user({ id });
       if (!user) {
-        throw new Error("Please make sure you are logged in");
+        throw new Error("We could not find your information, please try again later.");
       }
       if (status) {
-        const userContentEmail = `
-          Dear ${user.displayName} <br /><br />
+        const userMessage = `
           You recently booked for a hair cut through Soso-The-Barber app.<br />
           This email serves to confirm that your booking was successful and Soso-The-Barber is aware of it.<br /><br />
           Booking information can be viewed in the app under Bookings.<br />
-          You will recieve a communication from Soso-The-Barber prio to the cutting confirming the arrival.<br /><br />
-          Thank you<br /><br />
-          <a href="https://play.google.com/store/apps/details?id=com.sosothebarber" target="_blank" rel="noopener noreferrer" style="border:none;text-decoration:none"><img src="https://www.niftybuttons.com/googleplay/googleplay-button8.png"></a>
-          <br />
-          Your one and only Soso the fucking barber
-        `;
-        const adminContentEmail = `
-          Dear Soso-The-Barber <br /><br />
+          You will recieve a communication from Soso-The-Barber prio to the cutting confirming the arrival.
+        `
+        const userContentEmail = mailContent(user.displayName, userMessage);
+
+        const adminMessage = `
           This email servers as an alert concerning a recent booking that has just been made by ${user.displayName}<br /><br />
           Please navigate to the Bookings screen in the app to see the details.
-          Remember to contact the user prio to the cutting<br /><br />
-          <a href="https://play.google.com/store/apps/details?id=com.sosothebarber" target="_blank" rel="noopener noreferrer" style="border:none;text-decoration:none"><img src="https://www.niftybuttons.com/googleplay/googleplay-button8.png"></a>
-        `;
+          Remember to contact the user prio to the cutting.
+        `
+        const adminContentEmail = mailContent("Soso-The-Barber", adminMessage);
         
         await ctx.prisma.updateBooking({where:{id: bookingId}, data:{status: "ACTIVE"}})
         try {
@@ -346,31 +349,33 @@ export const Mutation = {
         throw new Error("You must be logged in to update user information.");
       }
       const token = authorizationHeader.split(" ")[1];
-      const signedIn = jwt.verify(token, "soso-the-barber-jwt-secret");
+      let signedIn;
+      try {
+        signedIn = jwt.verify(token, "soso-the-barber-jwt-secret");
+      } catch (error) {
+        throw new Error('Your session has expired, please sign in again.')
+      }
       const { id } = (signedIn as any);
       // Logged in user information
       const user = await ctx.prisma.user({ id });
       if (!user) {
-        throw new Error("Please make sure you are logged in");
+        throw new Error("We could not find your information, please try again later.");
       }
-      const userContentEmail = `
-        Dear ${user.displayName} <br /><br />
-        You recently cancelled your hair cut booking through Soso-The-Barber app.<br />
-        This email serves to confirm that your booking was cancelled successfully and Soso-The-Barber is aware of it.<br /><br />
-        You will be refunded 50% of the original booking amount. Please note, it may take up to 7 working days to proccess your refund.<br />
-        You might recieve a communication from Soso-The-Barber to make sure a refund is done accordingly.<br /><br />
-        Thank you<br /><br />
-        <a href="https://play.google.com/store/apps/details?id=com.sosothebarber" target="_blank" rel="noopener noreferrer" style="border:none;text-decoration:none"><img src="https://www.niftybuttons.com/googleplay/googleplay-button8.png"></a>
-        <br />
-        Your one and only Soso the fucking barber
-      `;
-      const adminContentEmail = `
-        Dear Soso-The-Barber <br /><br />
+      const userMessage = `
+      You recently cancelled your hair cut booking through Soso-The-Barber app.<br />
+      This email serves to confirm that your booking was cancelled successfully and Soso-The-Barber is aware of it.<br /><br />
+      You will be refunded 50% of the original booking amount. Please note, it may take up to 7 working days to proccess your refund.<br />
+      You might recieve a communication from Soso-The-Barber to make sure a refund is done accordingly.<br /><br />
+      Thank you.
+      `
+      const userContentEmail = mailContent(user.displayName, userMessage);
+
+      const adminMessage = `
         This email servers as an alert concerning a recent booking cancellation that has just been made by ${user.displayName}<br /><br />
         Please navigate to the Bookings screen in the app to see the details, and process the refunds as accordingly.<br />
-        Remember to contact the client to make sure you refund the right person<br /><br />
-        <a href="https://play.google.com/store/apps/details?id=com.sosothebarber" target="_blank" rel="noopener noreferrer" style="border:none;text-decoration:none"><img src="https://www.niftybuttons.com/googleplay/googleplay-button8.png"></a>
-      `;
+        Remember to contact the client to make sure you refund the right person.
+      `
+      const adminContentEmail = mailContent("Soso-The-Barber", adminMessage);
       await ctx.prisma.updateBooking({where:{id: bookingId}, data:{status: "CANCELLED"}})
       try {
         const userEmail = {
@@ -410,35 +415,36 @@ export const Mutation = {
         throw new Error("You must be logged in to update user information.");
       }
       const token = authorizationHeader.split(" ")[1];
-      const signedIn = jwt.verify(token, "soso-the-barber-jwt-secret");
+      let signedIn;
+      try {
+        signedIn = jwt.verify(token, "soso-the-barber-jwt-secret");
+      } catch (error) {
+        throw new Error('Your session has expired, please sign in again.')
+      }
       const { id } = (signedIn as any);
       // Logged in user information
       const user = await ctx.prisma.user({ id });
       if (!user) {
-        throw new Error("Please make sure you are logged in");
+        throw new Error("We could not find your information, please try again later.");
       }
 
       if (user.role !== "ADMIN") {
         if (action === "cancel") {
             await ctx.prisma.updateBooking({where:{id: bookingId}, data:{status: "CANCELLED"}})
-            const userContentEmail = `
-              Dear ${user.displayName} <br /><br />
+            const userMessage = `
               You recently cancelled your hair cut booking through Soso-The-Barber app.<br />
               This email serves to confirm that your booking was cancelled successfully and Soso-The-Barber is aware of it.<br /><br />
               You will be refunded 50% of the original booking amount. Please note, it may take up to 7 working days to proccess your refund.<br />
-              You might recieve a communication from Soso-The-Barber to make sure a refund is done accordingly.<br /><br />
-              Thank you<br /><br />
-              <a href="https://play.google.com/store/apps/details?id=com.sosothebarber" target="_blank" rel="noopener noreferrer" style="border:none;text-decoration:none"><img src="https://www.niftybuttons.com/googleplay/googleplay-button8.png"></a>
-              <br />
-              Your one and only Soso the fucking barber
-            `;
-            const adminContentEmail = `
-              Dear Soso-The-Barber <br /><br />
+              You might recieve a communication from Soso-The-Barber to make sure a refund is done accordingly.
+            `
+            const userContentEmail = mailContent(user.displayName, userMessage);
+
+            const adminMessage = `
               This email servers as an alert concerning a recent booking cancellation that has just been made by ${user.displayName}<br /><br />
               Please navigate to the Bookings screen in the app to see the details, and process the refunds as accordingly.<br />
-              Remember to contact the client to make sure you refund the right person<br /><br />
-              <a href="https://play.google.com/store/apps/details?id=com.sosothebarber" target="_blank" rel="noopener noreferrer" style="border:none;text-decoration:none"><img src="https://www.niftybuttons.com/googleplay/googleplay-button8.png"></a>
-            `;
+              Remember to contact the client to make sure you refund the right person.
+            `
+            const adminContentEmail = mailContent("Soso-The-Barber", adminMessage);
             try {
               const userEmail = {
                 from: "sosothebarber@gmail.com",
@@ -479,161 +485,144 @@ export const Mutation = {
         }else {
           throw new Error("You are not allowed here");
         }
-      }
-      const userBooking: any = await ctx.prisma.booking({id: bookingId}).$fragment(`{
-        id
-				status
-				createdAt
-				user{
-					email
-					displayName
-				}
-      }`);
-      if (action === "done") {
-        await ctx.prisma.updateBooking({where:{id: bookingId}, data:{status: "DONE"}})
-        const userContentEmail = `
-          Dear ${userBooking.user.displayName} <br /><br />
-          Soso-The-Barber thank you so much for giving you a cut!.<br />
-          Hope to see you again.<br /><br />
-          Thank you<br /><br />
-          <a href="https://play.google.com/store/apps/details?id=com.sosothebarber" target="_blank" rel="noopener noreferrer" style="border:none;text-decoration:none"><img src="https://www.niftybuttons.com/googleplay/googleplay-button8.png"></a>
-          <br />
-          Your one and only Soso the fucking barber
-        `;
-        const adminContentEmail = `
-          Dear Soso-The-Barber <br /><br />
-          This email servers as an alert concerning a recent cut done to ${userBooking.user.displayName}<br /><br />
-          <a href="https://play.google.com/store/apps/details?id=com.sosothebarber" target="_blank" rel="noopener noreferrer" style="border:none;text-decoration:none"><img src="https://www.niftybuttons.com/googleplay/googleplay-button8.png"></a>
-        `;
-        try {
-          const userEmail = {
-            from: "sosothebarber@gmail.com",
-            to: userBooking.user.email,
-            subject: "Soso-The-Barber booking cancellation.",
-            html: userContentEmail
-          };
-    
-          await transport.sendMail(userEmail);
-    
-          const admintEmail = {
-            from: "sosothebarber@gmail.com",
-            to: "sosothebarber@gmail.com",
-            subject: "Soso-The-Barber booking cancellation.",
-            html: adminContentEmail
-          };
-    
-          await transport.sendMail(admintEmail);
-    
-        } catch (e) {
-          throw new Error(
-            `We tried to send an email but it failed, please check Bookings in the app for your booking information.`
-          );
-        }
-        return {
-          message: `Booking is done!`
-        }
-			}
-			
-			if (action === "cancel") {
-        await ctx.prisma.updateBooking({where:{id: bookingId}, data:{status: "CANCELLED"}})
-        const userContentEmail = `
-          Dear ${userBooking.user.displayName} <br /><br />
-          Soso-The-Barber has cancelled your booking slot!.<br />
-          This may be due to you delayed for over 15 minutes.<br />
-          If that is the case, note that there will be no refunds to be made.<br />
-          If you are still on time, please liase with Soso-The-Barber and find the reason why your slot was cancelled.<br />
-          Hope to see you again.<br /><br />
-          Thank you<br /><br />
-          <a href="https://play.google.com/store/apps/details?id=com.sosothebarber" target="_blank" rel="noopener noreferrer" style="border:none;text-decoration:none"><img src="https://www.niftybuttons.com/googleplay/googleplay-button8.png"></a>
-          <br />
-          Your one and only Soso the fucking barber
-        `;
-        const adminContentEmail = `
-          Dear Soso-The-Barber <br /><br />
-          This email servers as an alert concerning booking cancelation you made for ${userBooking.user.displayName}<br /><br />
-          <a href="https://play.google.com/store/apps/details?id=com.sosothebarber" target="_blank" rel="noopener noreferrer" style="border:none;text-decoration:none"><img src="https://www.niftybuttons.com/googleplay/googleplay-button8.png"></a>
-        `;
-        try {
-          const userEmail = {
-            from: "sosothebarber@gmail.com",
-            to: userBooking.user.email,
-            subject: "Soso-The-Barber booking cancellation.",
-            html: userContentEmail
-          };
-    
-          await transport.sendMail(userEmail);
-    
-          const admintEmail = {
-            from: "sosothebarber@gmail.com",
-            to: "sosothebarber@gmail.com",
-            subject: "Soso-The-Barber booking cancellation.",
-            html: adminContentEmail
-          };
-    
-          await transport.sendMail(admintEmail);
-    
-        } catch (e) {
-          throw new Error(
-            `We tried to send an email but it failed, please check Bookings in the app for your booking information.`
-          );
-        }
-        return {
-          message: `Booking is cancelled.`
-        }
-      }
+      } else {
+        const userBooking: any = await ctx.prisma.booking({id: bookingId}).$fragment(`{
+          id
+          status
+          createdAt
+          user{
+            email
+            displayName
+          }
+        }`);
 
-      if (action === "refresh") {
-        if (userBooking && userBooking.status === "PENDING") {
-          if (moment(Date.now()).isAfter(moment(userBooking.createdAt).add(10, "minutes"))) {
-            const response = await ctx.prisma.deleteBooking({id: bookingId});
-            
-            const userContentEmail = `
-              Dear ${userBooking.user.displayName} <br /><br />
+        if (action === "done") {
+          await ctx.prisma.updateBooking({where:{id: bookingId}, data:{status: "DONE"}})
+          const userMessage = "Soso-The-Barber thank you so much for giving you a cut!. <br />Hope to see you again"
+          const userContentEmail = mailContent(userBooking.user.displayName, userMessage)
+          
+          const adminMessage = `This email servers as an alert concerning a recent cut done to ${userBooking.user.displayName}.`
+          const adminContentEmail = mailContent("Soso-The-Barber", adminMessage);
+          try {
+            const userEmail = {
+              from: "sosothebarber@gmail.com",
+              to: userBooking.user.email,
+              subject: "Soso-The-Barber booking cancellation.",
+              html: userContentEmail
+            };
+      
+            await transport.sendMail(userEmail);
+      
+            const admintEmail = {
+              from: "sosothebarber@gmail.com",
+              to: "sosothebarber@gmail.com",
+              subject: "Soso-The-Barber booking cancellation.",
+              html: adminContentEmail
+            };
+      
+            await transport.sendMail(admintEmail);
+      
+          } catch (e) {
+            throw new Error(
+              `We tried to send an email but it failed, please check Bookings in the app for your booking information.`
+            );
+          }
+          return {
+            message: `Booking is done!`
+          }
+        }
+
+        if (action === "cancel") {
+          await ctx.prisma.updateBooking({where:{id: bookingId}, data:{status: "CANCELLED"}})
+          const userMessage = `
+            Soso-The-Barber has cancelled your booking slot!.<br />
+            This may be due to you delayed for over 15 minutes.<br />
+            If that is the case, note that there will be no refunds to be made.<br />
+            If you are still on time, please liase with Soso-The-Barber and find the reason why your slot was cancelled.<br />
+            Hope to see you again.
+          `
+          const userContentEmail = mailContent(userBooking.user.displayName, userMessage);
+  
+          const adminMessage = `This email servers as an alert concerning booking cancelation you made for ${userBooking.user.displayName}.`
+          const adminContentEmail = mailContent("Soso-The-Barber", adminMessage);
+          try {
+            const userEmail = {
+              from: "sosothebarber@gmail.com",
+              to: userBooking.user.email,
+              subject: "Soso-The-Barber booking cancellation.",
+              html: userContentEmail
+            };
+      
+            await transport.sendMail(userEmail);
+      
+            const admintEmail = {
+              from: "sosothebarber@gmail.com",
+              to: "sosothebarber@gmail.com",
+              subject: "Soso-The-Barber booking cancellation.",
+              html: adminContentEmail
+            };
+      
+            await transport.sendMail(admintEmail);
+      
+          } catch (e) {
+            throw new Error(
+              `We tried to send an email but it failed, please check Bookings in the app for your booking information.`
+            );
+          }
+          return {
+            message: `Booking is cancelled.`
+          }
+        }
+        
+        if (action === "refresh") {
+          if (userBooking && userBooking.status === "PENDING") {
+            if (moment(Date.now()).isAfter(moment(userBooking.createdAt).add(10, "minutes"))) {
+              const response = await ctx.prisma.deleteBooking({id: bookingId});
+              
+              const userMessage = `
               You made a booking, but did not pay on time.<br />
-              This email serves to inform you that, your booking no longer exists.<br /><br />
-              Thank you<br /><br />
-              <a href="https://play.google.com/store/apps/details?id=com.sosothebarber" target="_blank" rel="noopener noreferrer" style="border:none;text-decoration:none"><img src="https://www.niftybuttons.com/googleplay/googleplay-button8.png"></a>
-              <br />
-              Your one and only Soso the fucking barber
-            `;
-            const adminContentEmail = `
-              Dear Soso-The-Barber <br /><br />
-              This email servers as an alert concerning a pending payment that was not made on time by ${userBooking.user.displayName}<br /><br />
-              The booking no longer exixts.<br /><br />
-              <a href="https://play.google.com/store/apps/details?id=com.sosothebarber" target="_blank" rel="noopener noreferrer" style="border:none;text-decoration:none"><img src="https://www.niftybuttons.com/googleplay/googleplay-button8.png"></a>
-            `;
-            try {
-              const userEmail = {
-                from: "sosothebarber@gmail.com",
-                to: userBooking.user.email,
-                subject: "Soso-The-Barber booking cancellation.",
-                html: userContentEmail
-              };
-        
-              await transport.sendMail(userEmail);
-        
-              const admintEmail = {
-                from: "sosothebarber@gmail.com",
-                to: "sosothebarber@gmail.com",
-                subject: "Soso-The-Barber booking cancellation.",
-                html: adminContentEmail
-              };
-        
-              await transport.sendMail(admintEmail);
-        
-            } catch (e) {
-              throw new Error(
-                `We tried to send an email but it failed, please check Bookings in the app for your booking information.`
-              );
+              This email serves to inform you that, your booking no longer exists.
+              `
+              const userContentEmail = mailContent(userBooking.user.displayName, userMessage);
+  
+              const adminMessage = `
+                This email servers as an alert concerning a pending payment that was not made on time by ${userBooking.user.displayName}<br /><br />
+                The booking no longer exixts.
+              `
+              const adminContentEmail = mailContent("Soso-The-Barber", adminMessage);
+              try {
+                const userEmail = {
+                  from: "sosothebarber@gmail.com",
+                  to: userBooking.user.email,
+                  subject: "Soso-The-Barber booking cancellation.",
+                  html: userContentEmail
+                };
+          
+                await transport.sendMail(userEmail);
+          
+                const admintEmail = {
+                  from: "sosothebarber@gmail.com",
+                  to: "sosothebarber@gmail.com",
+                  subject: "Soso-The-Barber booking cancellation.",
+                  html: adminContentEmail
+                };
+          
+                await transport.sendMail(admintEmail);
+          
+              } catch (e) {
+                throw new Error(
+                  `We tried to send an email but it failed, please check Bookings in the app for your booking information.`
+                );
+              }
+              return {
+                message: `Booking no longer exist!`
+              }
+            } else {
+              return {
+                message: `Lets give the client some more minuts!`
+              }
             }
-            return {
-              message: `Booking no longer exist!`
-            }
-          } else {
-						return {
-              message: `Lets give the client some more minuts!`
-            }
-					}
+          }
         }
       }
       return {
