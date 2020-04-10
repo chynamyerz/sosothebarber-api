@@ -1,0 +1,45 @@
+type User {
+  id: ID! @id
+  email: String! @unique
+  displayName: String!
+  phoneNumber: String!
+  password: String!
+  bookings: [Booking!]!
+  oneTimePin: String
+  role: Role
+  resetTokenExpiry: DateTime
+  updatedAt: DateTime @updatedAt
+  createdAt: DateTime @createdAt
+}
+
+type Cut {
+  id: ID! @id
+  title: String!
+  description: String!
+  image: String!
+  price: Int!
+  updatedAt: DateTime @updatedAt
+  createdAt: DateTime @createdAt
+}
+
+type Booking {
+  id: ID! @id
+  cut: Cut!
+  user: User!
+  date: DateTime!
+  time: DateTime!
+  status: BookingStatus! @scalar
+  updatedAt: DateTime @updatedAt
+  createdAt: DateTime @createdAt
+}
+
+enum Role {
+  ADMIN
+}
+
+enum BookingStatus {
+  ACTIVE
+  DONE
+  CANCELLED
+  PENDING
+}

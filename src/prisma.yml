@@ -1,0 +1,5 @@
+endpoint: ${env:SOSO_PRISMA_ENDPOINT_DEV}
+datamodel: datamodel.prisma
+generate:
+  - generator: typescript-client
+    output: ./generated/prisma-client/

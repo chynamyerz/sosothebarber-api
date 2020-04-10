@@ -1,0 +1,28 @@
+{
+    "version": 2,
+    "builds": [
+      {
+        "src": "src/index.ts",
+        "use": "@now/node-server"
+      }
+    ],
+    "routes": [
+      {
+        "src": "/",
+        "dest": "src/index.ts"
+      }
+    ],
+    "env": {
+      "SOSO_SESSION_SECRET": "@soso_session_secret",
+      "SOSO_PRISMA_ENDPOINT_PROD":"@soso_prisma_endpoint_prod",
+      "SOSO_PRISMA_ENDPOINT_DEV":"@soso_prisma_endpoint_dev",
+      "SOSO_PRISMA_SECRET":"@soso_prisma_secret",
+      "SOSO_APP_SECRET":"@soso_app_secret",
+      "SOSO_PORT":"@soso_port",
+      "SOSO_MAIL_SERVICE":"@soso_mail_service",
+      "SOSO_MAIL_PORT":"@soso_mail_port",
+      "SOSO_MAIL_USER":"@soso_mail_user",
+      "SOSO_MAIL_PASSWORD":"@soso_mail_password"
+    }
+  }
+  

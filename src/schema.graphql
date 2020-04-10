@@ -1,0 +1,105 @@
+type Query {
+  user: User
+  userWithBookings: User
+  users: [User!]!
+  cuts: [Cut!]!
+  bookings: [Booking!]!
+  bookingsWithUser: [Booking!]!
+}
+
+type Mutation {
+  signup(
+    email: String!
+    displayName: String!
+    phoneNumber: String!
+    password: String!
+  ): Message!
+
+  signin(
+    email: String!
+    password: String!
+  ): UserToken!
+
+  updateUser(
+    email: String
+    displayName: String
+    phoneNumber: String
+    password: String!
+    newPassword: String
+  ): Message
+
+  requestPasswordReset(
+    email: String!
+  ): Message
+
+  resetPassword(
+    oneTimePin: String!
+    password: String!
+  ): Message
+
+  bookPending(
+    cutId: ID!
+    userId: ID!
+    dayTime: String!
+  ): Message!
+
+  bookSucceed(
+    status: Boolean!
+    bookingId: ID!
+  ): Message!
+
+  cancelBooking(
+    bookingId: ID!
+  ): Message!
+
+  manageBookings(
+    bookingId: ID!
+    action: String!
+  ): Message!
+}
+
+type User {
+  id: ID!
+  email: String!
+  displayName: String!
+  phoneNumber: String!
+  role: Role
+  bookings: [Booking!]!
+}
+
+type Cut {
+  id: ID!
+  title: String!
+  description: String!
+  image: String!
+  price: Int!
+}
+
+type Booking {
+  id: ID!
+  cut: Cut!
+  user: User!
+  date: String!
+  time: String!
+  status: BookingStatus!
+}
+
+type UserToken {
+  token: String
+  user: User
+}
+
+type Message {
+  message: String!
+}
+
+enum Role {
+  ADMIN
+}
+
+enum BookingStatus {
+  ACTIVE
+  DONE
+  CANCELLED
+  PENDING
+}
