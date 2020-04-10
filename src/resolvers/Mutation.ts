@@ -417,8 +417,68 @@ export const Mutation = {
       if (!user) {
         throw new Error("Please make sure you are logged in");
       }
+
       if (user.role !== "ADMIN") {
-        throw new Error("You are not allowed here");
+        if (action === "cancel") {
+            await ctx.prisma.updateBooking({where:{id: bookingId}, data:{status: "CANCELLED"}})
+            const userContentEmail = `
+              Dear ${user.displayName} <br /><br />
+              You recently cancelled your hair cut booking through Soso-The-Barber app.<br />
+              This email serves to confirm that your booking was cancelled successfully and Soso-The-Barber is aware of it.<br /><br />
+              You will be refunded 50% of the original booking amount. Please note, it may take up to 7 working days to proccess your refund.<br />
+              You might recieve a communication from Soso-The-Barber to make sure a refund is done accordingly.<br /><br />
+              Thank you<br /><br />
+              <a href="https://play.google.com/store/apps/details?id=com.sosothebarber" target="_blank" rel="noopener noreferrer" style="border:none;text-decoration:none"><img src="https://www.niftybuttons.com/googleplay/googleplay-button8.png"></a>
+              <br />
+              Your one and only Soso the fucking barber
+            `;
+            const adminContentEmail = `
+              Dear Soso-The-Barber <br /><br />
+              This email servers as an alert concerning a recent booking cancellation that has just been made by ${user.displayName}<br /><br />
+              Please navigate to the Bookings screen in the app to see the details, and process the refunds as accordingly.<br />
+              Remember to contact the client to make sure you refund the right person<br /><br />
+              <a href="https://play.google.com/store/apps/details?id=com.sosothebarber" target="_blank" rel="noopener noreferrer" style="border:none;text-decoration:none"><img src="https://www.niftybuttons.com/googleplay/googleplay-button8.png"></a>
+            `;
+            try {
+              const userEmail = {
+                from: "sosothebarber@gmail.com",
+                to: user.email,
+                subject: "Soso-The-Barber booking cancellation.",
+                html: userContentEmail
+              };
+        
+              await transport.sendMail(userEmail);
+        
+              const admintEmail = {
+                from: "sosothebarber@gmail.com",
+                to: "sosothebarber@gmail.com",
+                subject: "Soso-The-Barber booking cancellation.",
+                html: adminContentEmail
+              };
+        
+              await transport.sendMail(admintEmail);
+        
+            } catch (e) {
+              throw new Error(
+                `We tried to send an email to ${user.email} but it failed, please check Bookings in the app for your booking information.`
+              );
+            }
+            return {
+              message: `Booking is cancelled.`
+            }
+        } 
+        
+        if (action == 'paynow') {
+          const bookingStillPending = ctx.prisma.booking({id: bookingId})
+          if (!bookingStillPending) {
+            throw new Error('The booking no longer exist, this may be due to delaying making payment on time.')
+          }
+          return {
+            message: `You can still pay`
+          }
+        }else {
+          throw new Error("You are not allowed here");
+        }
       }
       const userBooking: any = await ctx.prisma.booking({id: bookingId}).$fragment(`{
         id
@@ -518,7 +578,7 @@ export const Mutation = {
           );
         }
         return {
-          message: `Booking is done!`
+          message: `Booking is cancelled.`
         }
       }
 
