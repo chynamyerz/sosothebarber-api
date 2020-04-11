@@ -9,16 +9,14 @@ const transport = createTransport({
 });
 
 const mailContent = (displayName: string, message: string)  => `
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
+<!DOCTYPE html>
+<html>
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-<title>Soso-The-Barber</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<script defer src="https://use.fontawesome.com/releases/v5.13.0/js/all.js"></script>
-<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.13.0/css/all.css">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width">
+    <title>Soso-The-Barber</title>
 </head>
-<body style="margin: 0; padding: 0;">
+<body style="margin: 0; padding: 20px;">
   <table border="0" cellpadding="0" cellspacing="0" width="100%"> 
     <tr>
       <td style="padding: 10px 0 30px 0;">
@@ -51,42 +49,48 @@ const mailContent = (displayName: string, message: string)  => `
             </td>
           </tr>     
           <tr>
-            <td bgcolor="black" style="padding: 10px 10px 10px 10px;">
+            <td bgcolor="#f0ffff" style="padding: 10px 10px 10px 10px;">
               <table border="0" cellpadding="0" cellspacing="0" width="100%">
                 <tr>
-                  <td style="color: #ffffff; font-family: Arial, sans-serif; font-size: 14px;" width="75%">
+                  <td style="font-family: Arial, sans-serif; font-size: 14px;" width="75%">
                     &nbsp;&nbsp;&nbsp;&nbsp;&copy; Soso-The-Barber 2020<br/>
                   </td>
                   <td align="right" width="25%">
                     <table border="0" cellpadding="0" cellspacing="0">
                       <tr>
                         <td style="font-family: Arial, sans-serif; font-size: 12px; font-weight: bold;">
-                          <a href="http://www.twitter.com/" style="color: #f0ffff;">
-                            <i class="fab fa-whatsapp" style="font-size:20px;color:#f0ffff;"></i>
+                          <a href="" style="color: black">
+                            <img src="https://res.cloudinary.com/myezasifiso/image/upload/v1586626005/sickfits/whatsapp-square-brands.svg" alt="Whatsapp" width="38" height="38" style="display: block;" border="0" />
                           </a>
                         </td>
                         <td style="font-size: 0; line-height: 0;" width="50">&nbsp;</td>
                         <td style="font-family: Arial, sans-serif; font-size: 12px; font-weight: bold;">
-                          <a href="http://www.twitter.com/" style="color: #f0ffff;">
-                            <i class="fab fa-instagram" style="font-size:20px;color:#f0ffff;"></i>
+                          <a href="" style="color: black">
+                            <img src="https://res.cloudinary.com/myezasifiso/image/upload/v1586626005/sickfits/instagram-square-brands.svg" alt="Instagram" width="38" height="38" style="display: block;" border="0" />
                           </a>
                         </td>
                         <td style="font-size: 0; line-height: 0;" width="50">&nbsp;</td>
                         <td style="font-family: Arial, sans-serif; font-size: 12px; font-weight: bold;">
-                          <a href="http://www.twitter.com/" style="color: #f0ffff;">
-                            <i class="fab fa-facebook" style="font-size:20px;color:#f0ffff;"></i>
+                          <a href="" style="color: black;">
+                            <img src="https://res.cloudinary.com/myezasifiso/image/upload/v1586626005/sickfits/facebook-f-brands.svg" alt="Facebook" width="38" height="38" style="display: block;" border="0" />
+                          </a>
+                        </td>
+                        <td style="font-size: 0; line-height: 0;" width="50">&nbsp;</td>
+                        <td style="font-family: Arial, sans-serif; font-size: 12px; font-weight: bold;">
+                          <a href="" style="color: black;">
+                            <img src="https://res.cloudinary.com/myezasifiso/image/upload/v1586626005/sickfits/twitter-brands.svg" alt="Twitter" width="38" height="38" style="display: block;" border="0" />
                           </a>
                         </td>
                         <td style="font-size: 0; line-height: 0;" width="200">&nbsp;</td>
                         <td style="font-family: Arial, sans-serif; font-size: 12px; font-weight: bold;">
-                          <a href="http://www.twitter.com/" style="color: #f0ffff;">
-                            <i class="fab fa-app-store-ios" style="font-size:20px;color:#f0ffff;"></i>
+                          <a href="" style="color: black;">
+                            <img src="https://res.cloudinary.com/myezasifiso/image/upload/v1586626004/sickfits/app-store-ios-brands.svg" alt="App Store" width="38" height="38" style="display: block;" border="0" />
                           </a>
                         </td>
                         <td style="font-size: 0; line-height: 0;" width="50">&nbsp;</td>
                         <td style="font-family: Arial, sans-serif; font-size: 12px; font-weight: bold;">
-                          <a href="http://www.twitter.com/" style="color: #f0ffff;">
-                            <i class="fab fa-google-play" style="font-size:20px;color:#f0ffff;"></i>
+                          <a href="" style="color: black;">
+                            <img src="https://res.cloudinary.com/myezasifiso/image/upload/v1586625760/sickfits/google-play-brands.svg" alt="Play Store" width="38" height="38" style="display: block;" border="0" />
                           </a>
                         </td>
                         <td style="font-size: 0; line-height: 0;" width="50">&nbsp;</td>

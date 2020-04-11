@@ -292,15 +292,15 @@ export const Mutation = {
       if (status) {
         const userMessage = `
           You recently booked for a hair cut through Soso-The-Barber app.<br />
-          This email serves to confirm that your booking was successful and Soso-The-Barber is aware of it.<br /><br />
+          This email serves to confirm that your booking was successful and Soso-The-Barber is aware of it.<br />
           Booking information can be viewed in the app under Bookings.<br />
           You will recieve a communication from Soso-The-Barber prio to the cutting confirming the arrival.
         `
         const userContentEmail = mailContent(user.displayName, userMessage);
 
         const adminMessage = `
-          This email servers as an alert concerning a recent booking that has just been made by ${user.displayName}<br /><br />
-          Please navigate to the Bookings screen in the app to see the details.
+          This email servers as an alert concerning a recent booking that has just been made by ${user.displayName}.<br />
+          Please navigate to the Bookings screen in the app to see the details.<br />
           Remember to contact the user prio to the cutting.
         `
         const adminContentEmail = mailContent("Soso-The-Barber", adminMessage);
@@ -363,15 +363,14 @@ export const Mutation = {
       }
       const userMessage = `
       You recently cancelled your hair cut booking through Soso-The-Barber app.<br />
-      This email serves to confirm that your booking was cancelled successfully and Soso-The-Barber is aware of it.<br /><br />
+      This email serves to confirm that your booking was cancelled successfully and Soso-The-Barber is aware of it.<br />
       You will be refunded 50% of the original booking amount. Please note, it may take up to 7 working days to proccess your refund.<br />
-      You might recieve a communication from Soso-The-Barber to make sure a refund is done accordingly.<br /><br />
-      Thank you.
+      You might recieve a communication from Soso-The-Barber to make sure a refund is done accordingly.<br />
       `
       const userContentEmail = mailContent(user.displayName, userMessage);
 
       const adminMessage = `
-        This email servers as an alert concerning a recent booking cancellation that has just been made by ${user.displayName}<br /><br />
+        This email servers as an alert concerning a recent booking cancellation that has just been made by ${user.displayName}<br />
         Please navigate to the Bookings screen in the app to see the details, and process the refunds as accordingly.<br />
         Remember to contact the client to make sure you refund the right person.
       `
@@ -440,7 +439,7 @@ export const Mutation = {
             const userContentEmail = mailContent(user.displayName, userMessage);
 
             const adminMessage = `
-              This email servers as an alert concerning a recent booking cancellation that has just been made by ${user.displayName}<br /><br />
+              This email servers as an alert concerning a recent booking cancellation that has just been made by ${user.displayName}<br />
               Please navigate to the Bookings screen in the app to see the details, and process the refunds as accordingly.<br />
               Remember to contact the client to make sure you refund the right person.
             `
@@ -498,7 +497,10 @@ export const Mutation = {
 
         if (action === "done") {
           await ctx.prisma.updateBooking({where:{id: bookingId}, data:{status: "DONE"}})
-          const userMessage = "Soso-The-Barber thank you so much for giving you a cut!. <br />Hope to see you again"
+          const userMessage = `
+            Soso-The-Barber thank you so much for giving you a cut!.<br />
+            Hope to see you again
+          `
           const userContentEmail = mailContent(userBooking.user.displayName, userMessage)
           
           const adminMessage = `This email servers as an alert concerning a recent cut done to ${userBooking.user.displayName}.`
@@ -580,13 +582,13 @@ export const Mutation = {
               const response = await ctx.prisma.deleteBooking({id: bookingId});
               
               const userMessage = `
-              You made a booking, but did not pay on time.<br />
-              This email serves to inform you that, your booking no longer exists.
+                You made a booking, but did not pay on time.<br />
+                This email serves to inform you that, your booking no longer exists.
               `
               const userContentEmail = mailContent(userBooking.user.displayName, userMessage);
   
               const adminMessage = `
-                This email servers as an alert concerning a pending payment that was not made on time by ${userBooking.user.displayName}<br /><br />
+                This email servers as an alert concerning a pending payment that was not made on time by ${userBooking.user.displayName}.<br />
                 The booking no longer exixts.
               `
               const adminContentEmail = mailContent("Soso-The-Barber", adminMessage);
@@ -624,6 +626,46 @@ export const Mutation = {
             }
           }
         }
+
+        if (action === "reminder") {
+          const userMessage = `
+            You made a booking through Soso-The-Barber app.<br />
+            This email serves to remind you about your booking, please check your bookings in the app under bookings management.
+          `
+          const userContentEmail = mailContent(userBooking.user.displayName, userMessage);
+
+          const adminMessage = `
+            This email servers as an alert concerning a reminder you send about the booking made by ${userBooking.user.displayName}.
+          `
+          const adminContentEmail = mailContent("Soso-The-Barber", adminMessage);
+          try {
+            const userEmail = {
+              from: "sosothebarber@gmail.com",
+              to: userBooking.user.email,
+              subject: "Soso-The-Barber booking cancellation.",
+              html: userContentEmail
+            };
+      
+            await transport.sendMail(userEmail);
+      
+            const admintEmail = {
+              from: "sosothebarber@gmail.com",
+              to: "sosothebarber@gmail.com",
+              subject: "Soso-The-Barber booking cancellation.",
+              html: adminContentEmail
+            };
+      
+            await transport.sendMail(admintEmail);
+      
+          } catch (e) {
+            throw new Error(
+              `We tried to send an email to ${user.email} but it failed, please check Bookings in the app for your booking information.`
+            );
+          }
+          return {
+            message: `A reminder has been sent to ${userBooking.user.email}.`
+          }
+        } 
       }
       return {
         message: `No changes were made`
