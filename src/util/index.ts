@@ -57,30 +57,7 @@ const mailContent = (displayName: string, message: string)  => `
                   </td>
                   <td align="right" width="25%">
                     <table border="0" cellpadding="0" cellspacing="0">
-                      <tr>
-                        <td style="font-family: Arial, sans-serif; font-size: 12px; font-weight: bold;">
-                          <a href="" style="color: black">
-                            <img src="https://res.cloudinary.com/myezasifiso/image/upload/v1586626005/sickfits/whatsapp-square-brands.svg" alt="Whatsapp" width="38" height="38" style="display: block;" border="0" />
-                          </a>
-                        </td>
-                        <td style="font-size: 0; line-height: 0;" width="50">&nbsp;</td>
-                        <td style="font-family: Arial, sans-serif; font-size: 12px; font-weight: bold;">
-                          <a href="" style="color: black">
-                            <img src="https://res.cloudinary.com/myezasifiso/image/upload/v1586626005/sickfits/instagram-square-brands.svg" alt="Instagram" width="38" height="38" style="display: block;" border="0" />
-                          </a>
-                        </td>
-                        <td style="font-size: 0; line-height: 0;" width="50">&nbsp;</td>
-                        <td style="font-family: Arial, sans-serif; font-size: 12px; font-weight: bold;">
-                          <a href="" style="color: black;">
-                            <img src="https://res.cloudinary.com/myezasifiso/image/upload/v1586626005/sickfits/facebook-f-brands.svg" alt="Facebook" width="38" height="38" style="display: block;" border="0" />
-                          </a>
-                        </td>
-                        <td style="font-size: 0; line-height: 0;" width="50">&nbsp;</td>
-                        <td style="font-family: Arial, sans-serif; font-size: 12px; font-weight: bold;">
-                          <a href="" style="color: black;">
-                            <img src="https://res.cloudinary.com/myezasifiso/image/upload/v1586626005/sickfits/twitter-brands.svg" alt="Twitter" width="38" height="38" style="display: block;" border="0" />
-                          </a>
-                        </td>
+                      <tr>                        
                         <td style="font-size: 0; line-height: 0;" width="200">&nbsp;</td>
                         <td style="font-family: Arial, sans-serif; font-size: 12px; font-weight: bold;">
                           <a href="" style="color: black;">
