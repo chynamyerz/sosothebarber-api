@@ -14,6 +14,7 @@ export const Query = {
       if (!authorizationHeader) {
         return null;
       }
+
       // Check if the JWT secret key is defined.
       if (!process.env.SOSO_JWT_SECRET) {
         throw Error("Internal server error. JWT key not valid")
