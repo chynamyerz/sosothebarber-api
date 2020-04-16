@@ -15,12 +15,7 @@ export const Query = {
         return null;
       }
       const token = authorizationHeader.split(" ")[1];
-      let signedIn;
-      try {
-        signedIn = jwt.verify(token, "soso-the-barber-jwt-secret");
-      } catch (error) {
-        throw new Error('Your session has expired, please sign in again.')
-      }
+      let signedIn = jwt.verify(token, "soso-the-barber-jwt-secret");
       
       const { id } = (signedIn as any);
       const currentUser = await ctx.prisma.user({
