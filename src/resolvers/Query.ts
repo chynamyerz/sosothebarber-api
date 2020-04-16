@@ -14,13 +14,12 @@ export const Query = {
       if (!authorizationHeader) {
         return null;
       }
-      const token = authorizationHeader.split(" ")[1];
-      let signedIn;
-      try {
-        signedIn = jwt.verify(token, "soso-the-barber-jwt-secret");
-      } catch (error) {
-        throw new Error('Your session has expired, please sign in again.')
+      // Check if the JWT secret key is defined.
+      if (!process.env.SOSO_JWT_SECRET) {
+        throw Error("Internal server error. JWT key not valid")
       }
+      const token = authorizationHeader.split(" ")[1];
+      const signedIn = jwt.verify(token, process.env.SOSO_JWT_SECRET);
       
       const { id } = (signedIn as any);
       const currentUser = await ctx.prisma.user({
@@ -38,14 +37,15 @@ export const Query = {
       if (!authorizationHeader) {
         return null;
       }
-      const token = authorizationHeader.split(" ")[1];
-      let signedIn;
-      try {
-        signedIn = jwt.verify(token, "soso-the-barber-jwt-secret");
-      } catch (error) {
-        throw new Error('Your session has expired, please sign in again.')
+
+      // Check if the JWT secret key is defined.
+      if (!process.env.SOSO_JWT_SECRET) {
+        throw Error("Internal server error. JWT key not valid")
       }
-      
+
+      const token = authorizationHeader.split(" ")[1];
+      const signedIn = jwt.verify(token, process.env.SOSO_JWT_SECRET);
+
       const { id } = (signedIn as any);
       const currentUser = await ctx.prisma.user({
         id
@@ -80,16 +80,18 @@ export const Query = {
     try {
       return ctx.prisma.users();
     } catch (error) {
-      throw Error(error.message);
+      throw Error('Something went wrong, please try again later.');
     }
   },
+
   cuts: async (_: any, __: any, ctx: IContext) => {
     try {
       return ctx.prisma.cuts();
     } catch (error) {
-      throw Error(error.message);
+      throw Error('Something went wrong, please try again later.');
     }
   },
+
   bookings: async (_: any, __: any, ctx: IContext) => {
     try {
       return ctx.prisma.bookings().$fragment(`{
@@ -106,7 +108,7 @@ export const Query = {
         }
       }`);
     } catch (error) {
-      throw Error(error.message);
+      throw Error('Something went wrong, please try again later.');
     }
   },
 
@@ -116,12 +118,10 @@ export const Query = {
       if (!authorizationHeader) {
         return null;
       }
-      const token = authorizationHeader.split(" ")[1];
-      let signedIn;
-      try {
-        signedIn = jwt.verify(token, "soso-the-barber-jwt-secret");
-      } catch (error) {
-        throw new Error('Your session has expired, please sign in again.')
+
+      // Check if the JWT secret key is defined.
+      if (!process.env.SOSO_JWT_SECRET) {
+        throw Error("Internal server error. JWT key not valid")
       }
       
       return ctx.prisma.bookings().$fragment(`{
@@ -145,7 +145,7 @@ export const Query = {
         }
       }`);
     } catch (error) {
-      throw Error(error.message);
+      throw Error('Something went wrong, please try again later.');
     }
   },
 }

@@ -7,14 +7,17 @@ import {
   UserUpdateInput,
 } from "../generated/prisma-client";
 import { transport, mailContent } from "../util";
+
 interface IContext {
   prisma: Prisma;
   request: any;
 }
+
 // Defining user update interface
 interface IUserUpdate extends UserUpdateInput {
   newPassword?: string;
 }
+
 export const Mutation = {
   signup: async (_: any, {email, displayName, phoneNumber, password}: UserCreateInput, ctx: IContext) => {
     try {
@@ -43,6 +46,7 @@ export const Mutation = {
       throw Error(error.message);
     }
   },
+
   signin: async (_: any, {email, password}: {email: string; password: string}, ctx: IContext) => {
     try {
       // Make username lower case and trim the white spaces
@@ -79,17 +83,24 @@ export const Mutation = {
         }
       }
     } catch (error) {
-      throw Error(error.message)
+      throw Error(error.message);
     }
   },
+
   async updateUser(root: any, {email, displayName, phoneNumber, password, newPassword}: IUserUpdate, ctx: IContext) {
     try {
       const authorizationHeader = ctx.request.headers['x-access-token'] || ctx.request.headers['authorization'];
       if (!authorizationHeader) {
         throw new Error("You must be logged in to update user information.");
       }
+
+      // Check if the JWT secret key is defined.
+      if (!process.env.SOSO_JWT_SECRET) {
+        throw Error("Internal server error. JWT key not valid")
+      }
+
       const token = authorizationHeader.split(" ")[1];
-      const signedIn = jwt.verify(token, "soso-the-barber-jwt-secret");
+      const signedIn = jwt.verify(token, process.env.SOSO_JWT_SECRET);
       const { id } = (signedIn as any);
       // Logged in user information
       const user = await ctx.prisma.user({ id });
@@ -134,50 +145,56 @@ export const Mutation = {
       });
       return { message: "Updated successfully" };
     } catch (error) {
-      throw Error("Something went wrong")
+      throw Error(error.message);
     }
   },
+
   async requestPasswordReset(_: any, {email}: {email: string}, ctx: IContext) {
-    // Transform email address to lowercase.
-    email = email.trim().toLowerCase();
-    // Check if this is a real user
-    const user = await ctx.prisma.user({ email});
-    if (!user) {
-      throw new Error(`No such user found for email ${email}`);
-    }
-    // Set a reset one time pin and expiry on that user
-    const oneTimePin = (Math.random() * 10000).toFixed();
-    const resetTokenExpiry = moment(Date.now())
-      .add(1, "hours")
-      .toDate();
-    await ctx.prisma.updateUser({
-      where: { email },
-      data: { oneTimePin, resetTokenExpiry }
-    });
     try {
-      const message = `
-        Someone (probably you) has requested to reset your password for the Soso-The-Barber app.<br><br>
-        Please use the OTP below to change the password:<br><br>
-        OTP: ${oneTimePin}<br><br>
-        If you have not requested to reset your password there is no need for any action from your side.
-      `
-      const html = mailContent(user.displayName, message);
-      const email = {
-        from: "sosothebarber@gmail.com",
-        to: user.email,
-        subject: "Reset your password for the Soso-The-barber",
-        html
-      };
-      await transport.sendMail(email);
-    } catch (e) {
-      throw new Error(
-        `The email with the password reset token could not be sent to ${
-          user.email
-        }.`
-      );
-    }
+      // Transform email address to lowercase.
+      email = email.trim().toLowerCase();
+      // Check if this is a real user
+      const user = await ctx.prisma.user({ email});
+      if (!user) {
+        throw new Error(`No such user found for email ${email}`);
+      }
+      // Set a reset one time pin and expiry on that user
+      const oneTimePin = (Math.random() * 10000).toFixed();
+      const resetTokenExpiry = moment(Date.now())
+        .add(1, "hours")
+        .toDate();
+      await ctx.prisma.updateUser({
+        where: { email },
+        data: { oneTimePin, resetTokenExpiry }
+      });
+      try {
+        const message = `
+          Someone (probably you) has requested to reset your password for the Soso-The-Barber app.<br><br>
+          Please use the OTP below to change the password:<br><br>
+          OTP: ${oneTimePin}<br><br>
+          If you have not requested to reset your password there is no need for any action from your side.
+        `
+        const html = mailContent(user.displayName, message);
+        const email = {
+          from: "sosothebarber@gmail.com",
+          to: user.email,
+          subject: "Reset your password for the Soso-The-barber",
+          html
+        };
+        await transport.sendMail(email);
+      } catch (e) {
+        throw new Error(
+          `The email with the password reset token could not be sent to ${
+            user.email
+          }.`
+        );
+      }
     return { message: "Requested password change successfully" };
+    } catch (error) {
+      throw Error(error.message);
+    }
   },
+
   /**
    * Reset the password
    *
@@ -188,7 +205,8 @@ export const Mutation = {
    * Returns the success message
    */
   async resetPassword(root: any, {oneTimePin, password}: {oneTimePin: string; password: string}, ctx: IContext) {
-    // Check if its a legit one time pin
+    try {
+      // Check if its a legit one time pin
     // And check if the one time pin is not expired
     const [user] = await ctx.prisma.users({
       where: {
@@ -215,7 +233,11 @@ export const Mutation = {
       }
     });
     return { message: "Password changed successfully" };
+    } catch (error) {
+      throw Error(error.message);
+    }
   },
+
   bookPending: async (_: any, {cutId, dayTime}: {cutId: string; dayTime: string}, ctx: IContext) => {
     try {
       const authorizationHeader = ctx.request.headers['x-access-token'] || ctx.request.headers['authorization'];
@@ -270,6 +292,7 @@ export const Mutation = {
       throw Error(error.message);
     }
   },
+
   bookSucceed: async (_: any, {bookingId, status}: {bookingId: string; status: boolean}, ctx: IContext) => {
     try {
       const authorizationHeader = ctx.request.headers['x-access-token'] || ctx.request.headers['authorization'];
@@ -342,6 +365,7 @@ export const Mutation = {
       throw Error(error.message);
     }
   },
+
   cancelBooking: async (_: any, {bookingId}: {bookingId: string}, ctx: IContext) => {
     try {
       const authorizationHeader = ctx.request.headers['x-access-token'] || ctx.request.headers['authorization'];
@@ -407,6 +431,7 @@ export const Mutation = {
       throw Error(error.message);
     }
   },
+
   manageBookings: async (_: any, {bookingId, action}: {bookingId: string, action: string}, ctx: IContext) => {
     try {
       const authorizationHeader = ctx.request.headers['x-access-token'] || ctx.request.headers['authorization'];
