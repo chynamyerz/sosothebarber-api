@@ -62,13 +62,18 @@ export const Mutation = {
       if (user && !await bcrypt.compare(password, user.password)) {
         throw Error("Invalid password");
       }
+
+      // Check if the JWT secret key is defined.
+      if (!process.env.SOSO_JWT_SECRET) {
+        throw Error("Internal server error. JWT key not valid")
+      }
       const token = jwt.sign(
         {
           id: user.id,
         },
-        "soso-the-barber-jwt-secret",
+        process.env.SOSO_JWT_SECRET,
         {
-          expiresIn: "24h",
+          expiresIn: "12h",
         }
       );  
       
@@ -245,9 +250,13 @@ export const Mutation = {
         throw new Error("You must be logged in to update user information.");
       }
       const token = authorizationHeader.split(" ")[1];
+      // Check if the JWT secret key is defined.
+      if (!process.env.SOSO_JWT_SECRET) {
+        throw Error("Internal server error. JWT key not valid")
+      }
       let signedIn;
       try {
-        signedIn = jwt.verify(token, "soso-the-barber-jwt-secret");
+        signedIn = jwt.verify(token, process.env.SOSO_JWT_SECRET);
       } catch (error) {
         throw new Error('Your session has expired, please sign in again.')
       }
@@ -299,10 +308,15 @@ export const Mutation = {
       if (!authorizationHeader) {
         throw new Error("You must be logged in to update user information.");
       }
+      // Check if the JWT secret key is defined.
+      if (!process.env.SOSO_JWT_SECRET) {
+        throw Error("Internal server error. JWT key not valid")
+      }
+
       const token = authorizationHeader.split(" ")[1];
       let signedIn;
       try {
-        signedIn = jwt.verify(token, "soso-the-barber-jwt-secret");
+        signedIn = jwt.verify(token, process.env.SOSO_JWT_SECRET);
       } catch (error) {
         throw new Error('Your session has expired, please sign in again.')
       }
@@ -372,10 +386,14 @@ export const Mutation = {
       if (!authorizationHeader) {
         throw new Error("You must be logged in to update user information.");
       }
+      // Check if the JWT secret key is defined.
+      if (!process.env.SOSO_JWT_SECRET) {
+        throw Error("Internal server error. JWT key not valid")
+      }
       const token = authorizationHeader.split(" ")[1];
       let signedIn;
       try {
-        signedIn = jwt.verify(token, "soso-the-barber-jwt-secret");
+        signedIn = jwt.verify(token, process.env.SOSO_JWT_SECRET);
       } catch (error) {
         throw new Error('Your session has expired, please sign in again.')
       }
@@ -438,10 +456,14 @@ export const Mutation = {
       if (!authorizationHeader) {
         throw new Error("You must be logged in to update user information.");
       }
+      // Check if the JWT secret key is defined.
+      if (!process.env.SOSO_JWT_SECRET) {
+        throw Error("Internal server error. JWT key not valid")
+      }
       const token = authorizationHeader.split(" ")[1];
       let signedIn;
       try {
-        signedIn = jwt.verify(token, "soso-the-barber-jwt-secret");
+        signedIn = jwt.verify(token, process.env.SOSO_JWT_SECRET);
       } catch (error) {
         throw new Error('Your session has expired, please sign in again.')
       }
